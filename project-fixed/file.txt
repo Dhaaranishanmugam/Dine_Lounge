@@ -1,0 +1,26 @@
+DineLounge/
+├── index.html                  ← Root login page
+├── frontend/
+│   ├── customer/
+│   │   ├── index.html          ← Customer ordering portal
+│   │   └── menu.js             ← 150 menu items + categories
+│   ├── chef/
+│   │   ├── chef.html           ← Chef kitchen portal
+│   │   └── chef.js             ← Order fetching & status logic
+│   ├── admin/
+│   │   ├── admin.html          ← Admin dashboard
+│   │   └── admin.js            ← Stats & order management
+│   ├── images/                 ← Food images + UPI QR code
+│   └── js/
+│       ├── api.js              ← Fetch helper functions
+│       ├── config.js           ← API base URL & endpoints
+│       └── utils.js            ← Shared utility functions
+└── backend/
+    ├── server.js               ← Express server & routes
+    ├── .env                    ← Environment variables
+    ├── config/db.js            ← MongoDB connection
+    ├── models/Order.js         ← Mongoose Order schema
+    ├── controllers/            ← Auth & order handlers
+    ├── routes/                 ← Auth & order endpoints
+    └── middleware/             ← JWT auth & validation
+

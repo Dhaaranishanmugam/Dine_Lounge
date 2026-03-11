@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><title>Dine Lounge</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F3EE;
+  --card:#FFFFFF;
+  --card2:#F5F0EB;
+  --pri:#E63946;
+  --pri-dk:#c1121f;
+  --pri-lt:#fff0f1;
+  --gold:#c8922a;
+  --gold-lt:#e0a83a;
+  --gold-dim:rgba(200,146,42,.12);
+  --amber:#e07b30;
+  --cream:#18181B;
+  --muted:#71717A;
+  --border:#E8E2DA;
+  --glow:0 0 40px rgba(230,57,70,.1);
+  --admin:#3b7dd8;
+  --chef:#d95f35;
+  --cust:#2e9e4f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100vh;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden;}
+
+/* ══ ANIMATED BG CANVAS ══ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ══ GRID LINES ══ */
+.grid-bg{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(230,57,70,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(230,57,70,.04) 1px,transparent 1px);
+  background-size:70px 70px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,#000 40%,transparent 100%);
+}
+
+/* ══ RADIAL GLOW ══ */
+.radial-glow{
+  position:fixed;z-index:1;pointer-events:none;border-radius:50%;filter:blur(80px);
+}
+.rg-gold{width:600px;height:400px;background:rgba(230,57,70,.06);top:-100px;left:50%;transform:translateX(-50%);}
+.rg-blue{width:350px;height:350px;background:rgba(59,125,216,.04);bottom:10%;right:-80px;animation:orb 9s ease-in-out infinite;}
+.rg-grn{width:280px;height:280px;background:rgba(46,158,79,.04);bottom:20%;left:-60px;animation:orb 12s ease-in-out infinite 4s;}
+@keyframes orb{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.08);}}
+
+/* ══ WRAPPER ══ */
+.wrapper{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:1fr auto;
+  align-items:center;
+  padding:50px 24px;
+}
+
+/* ══ HERO ══ */
+.hero{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;margin-bottom:56px;
+  animation:fadeDown .8s ease both;
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-24px)}to{opacity:1;transform:translateY(0)}}
+
+/* Logo — SVG Rings + Fork matching dashboard red theme */
+.logo-ring{
+  width:110px;height:110px;border-radius:50%;
+  background:linear-gradient(135deg,#E63946,#c1121f);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;position:relative;
+  box-shadow:0 8px 40px rgba(230,57,70,.35),0 2px 12px rgba(230,57,70,.2);
+}
+.logo-ring::before{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  background:conic-gradient(rgba(230,57,70,.6),rgba(193,18,31,.8),transparent,rgba(230,57,70,.6));
+  animation:spin 6s linear infinite;z-index:-1;
+}
+.logo-ring::after{
+  content:'';position:absolute;inset:2px;border-radius:50%;
+  background:linear-gradient(135deg,#E63946,#c1121f);z-index:-1;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.logo-svg{width:72px;height:72px;}
+
+.brand-name{
+  font-family:'Cinzel',serif;font-size:3.4rem;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;
+  background:linear-gradient(135deg,#E63946 0%,#c1121f 50%,#e07b30 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:10px;
+}
+.brand-tagline{
+  font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:300;
+  letter-spacing:.35em;text-transform:uppercase;color:var(--muted);
+}
+.tagline-divider{
+  width:100px;height:1px;margin:16px auto 0;
+  background:linear-gradient(90deg,transparent,var(--pri),transparent);
+}
+
+/* ══ CARDS ROW ══ */
+.cards-row{
+  display:flex;gap:24px;flex-wrap:wrap;justify-content:center;
+  max-width:1080px;width:100%;margin:0 auto;
+}
+
+/* ══ ROLE CARD ══ */
+.role-card{
+  flex:1;min-width:280px;max-width:320px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;padding:40px 28px 32px;
+  text-align:center;cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .35s,border-color .3s;
+  animation:fadeUp .8s ease both;opacity:0;
+  box-shadow:0 2px 16px rgba(0,0,0,.06);
+}
+.role-card:nth-child(1){animation-delay:.15s;}
+.role-card:nth-child(2){animation-delay:.3s;}
+.role-card:nth-child(3){animation-delay:.45s;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+
+/* Shimmer line on top */
+.role-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  border-radius:22px 22px 0 0;opacity:0;transition:opacity .3s;
+}
+.admin-card::before{background:linear-gradient(90deg,transparent,var(--admin),transparent);}
+.chef-card::before{background:linear-gradient(90deg,transparent,var(--chef),transparent);}
+.cust-card::before{background:linear-gradient(90deg,transparent,var(--cust),transparent);}
+
+/* Glow overlay */
+.role-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% -10%,rgba(0,0,0,.015),transparent 65%);
+  pointer-events:none;
+}
+
+.role-card:hover{transform:translateY(-10px) scale(1.02);}
+.admin-card:hover{border-color:var(--admin);box-shadow:0 20px 60px rgba(59,125,216,.15),0 0 0 1px rgba(59,125,216,.08);} .admin-card:hover::before{opacity:1;}
+.chef-card:hover{border-color:var(--chef);box-shadow:0 20px 60px rgba(217,95,53,.15),0 0 0 1px rgba(217,95,53,.08);} .chef-card:hover::before{opacity:1;}
+.cust-card:hover{border-color:var(--cust);box-shadow:0 20px 60px rgba(46,158,79,.15),0 0 0 1px rgba(46,158,79,.08);} .cust-card:hover::before{opacity:1;}
+
+/* Icon */
+.icon-wrap{
+  width:88px;height:88px;border-radius:50%;
+  margin:0 auto 26px;display:flex;align-items:center;justify-content:center;
+  font-size:2.1rem;transition:transform .3s ease;
+}
+.role-card:hover .icon-wrap{transform:scale(1.12);}
+.admin-card .icon-wrap{background:rgba(59,125,216,.08);border:1px solid rgba(59,125,216,.2);color:var(--admin);box-shadow:0 0 30px rgba(59,125,216,.1);}
+.chef-card .icon-wrap{background:rgba(217,95,53,.08);border:1px solid rgba(217,95,53,.2);color:var(--chef);box-shadow:0 0 30px rgba(217,95,53,.1);}
+.cust-card .icon-wrap{background:rgba(46,158,79,.08);border:1px solid rgba(46,158,79,.2);color:var(--cust);box-shadow:0 0 30px rgba(46,158,79,.1);}
+
+.role-name{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:600;letter-spacing:.1em;color:#1a1208;margin-bottom:12px;}
+.role-desc{font-size:.88rem;color:var(--muted);line-height:1.75;margin-bottom:28px;}
+
+/* Role button */
+.role-btn{
+  width:100%;padding:13px 20px;border-radius:11px;
+  font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;
+  letter-spacing:.04em;border:none;cursor:pointer;
+  transition:all .25s ease;position:relative;overflow:hidden;
+}
+.role-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to right,rgba(255,255,255,0),rgba(255,255,255,.25),rgba(255,255,255,0));
+  transform:translateX(-100%);transition:transform .45s ease;
+}
+.role-btn:hover::after{transform:translateX(100%);}
+.admin-btn{background:rgba(59,125,216,.1);color:var(--admin);border:1px solid rgba(59,125,216,.25);}
+.admin-btn:hover{background:rgba(59,125,216,.18);box-shadow:0 4px 20px rgba(59,125,216,.15);}
+.chef-btn{background:rgba(217,95,53,.1);color:var(--chef);border:1px solid rgba(217,95,53,.25);}
+.chef-btn:hover{background:rgba(217,95,53,.18);box-shadow:0 4px 20px rgba(217,95,53,.15);}
+.cust-btn{background:rgba(46,158,79,.1);color:var(--cust);border:1px solid rgba(46,158,79,.25);}
+.cust-btn:hover{background:rgba(46,158,79,.18);box-shadow:0 4px 20px rgba(46,158,79,.15);}
+
+/* Status dot animation */
+.sdot{width:8px;height:8px;background:var(--cust);border-radius:50%;display:inline-block;margin-right:7px;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(46,158,79,.4);}50%{box-shadow:0 0 0 6px rgba(46,158,79,0);}}
+
+/* ══ FOOTER ══ */
+.page-footer{
+  text-align:center;color:rgba(122,110,98,.5);font-size:.75rem;
+  letter-spacing:.12em;text-transform:uppercase;padding:28px 0 8px;
+  animation:fadeDown 1s ease .6s both;
+}
+
+/* ══ RIPPLE ══ */
+.ripple{position:absolute;border-radius:50%;background:rgba(0,0,0,.06);transform:scale(0);animation:ripple-anim .6s linear;pointer-events:none;}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0;}}
+
+/* ══ MODALS ══ */
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:22px;color:var(--cream);box-shadow:0 10px 50px rgba(0,0,0,.12);}
+.modal-header{border-bottom:1px solid var(--border);border-radius:22px 22px 0 0;padding:22px 26px;transition:background .3s;}
+.modal-title{font-family:'Cinzel',serif;font-size:1.25rem;letter-spacing:.06em;transition:color .3s;}
+.btn-close{filter:none;opacity:.5;}
+.btn-close:hover{filter:none;opacity:1;}
+.modal-body{padding:26px;}
+
+/* Role-themed modal header + title */
+.modal-content.theme-admin .modal-header{background:linear-gradient(135deg,rgba(59,125,216,.08),transparent);}
+.modal-content.theme-admin .modal-title{color:var(--admin);}
+.modal-content.theme-chef .modal-header{background:linear-gradient(135deg,rgba(217,95,53,.08),transparent);}
+.modal-content.theme-chef .modal-title{color:var(--chef);}
+.modal-content.theme-cust .modal-header{background:linear-gradient(135deg,rgba(46,158,79,.08),transparent);}
+.modal-content.theme-cust .modal-title{color:var(--cust);}
+
+.form-label{font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.form-control,.form-select{
+  background:#f9f6f2;border:1px solid rgba(0,0,0,.1);
+  border-radius:11px;color:#1a1208;padding:13px 15px;
+  font-size:.95rem;font-family:'DM Sans',sans-serif;transition:border-color .2s,box-shadow .2s;
+}
+.form-select option{background:#fff;color:#1a1208;}
+.form-control::placeholder{color:var(--muted);}
+
+/* Role-themed form focus */
+.modal-content.theme-admin .form-control:focus,
+.modal-content.theme-admin .form-select:focus{border-color:var(--admin);box-shadow:0 0 0 3px rgba(59,125,216,.12);color:#18181B;outline:none;background:#fff;}
+.modal-content.theme-chef  .form-control:focus,
+.modal-content.theme-chef  .form-select:focus{border-color:var(--chef);box-shadow:0 0 0 3px rgba(217,95,53,.12);color:#18181B;outline:none;background:#fff;}
+.modal-content.theme-cust  .form-control:focus,
+.modal-content.theme-cust  .form-select:focus{border-color:var(--cust);box-shadow:0 0 0 3px rgba(46,158,79,.12);color:#18181B;outline:none;background:#fff;}
+
+/* Role-themed auth button */
+.btn-auth{
+  color:#fff;font-weight:700;font-size:.95rem;padding:14px;
+  border-radius:11px;border:none;letter-spacing:.04em;
+  transition:all .25s ease;font-family:'DM Sans',sans-serif;width:100%;cursor:pointer;
+}
+.btn-auth.auth-admin{background:linear-gradient(135deg,var(--admin) 0%,#2563c4 100%);}
+.btn-auth.auth-admin:hover{background:linear-gradient(135deg,#4a90e2 0%,var(--admin) 100%);transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,125,216,.32);}
+.btn-auth.auth-chef{background:linear-gradient(135deg,var(--chef) 0%,#b84a20 100%);}
+.btn-auth.auth-chef:hover{background:linear-gradient(135deg,#e87050 0%,var(--chef) 100%);transform:translateY(-2px);box-shadow:0 8px 24px rgba(217,95,53,.32);}
+.btn-auth.auth-cust{background:linear-gradient(135deg,var(--cust) 0%,#1d7a3a 100%);}
+.btn-auth.auth-cust:hover{background:linear-gradient(135deg,#3db85a 0%,var(--cust) 100%);transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,158,79,.32);}
+
+.alert-danger{background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.2);color:#c0392b;border-radius:10px;font-size:.87rem;padding:12px 14px;}
+
+/* ══ PARTICLE FOOD ICONS (floating) ══ */
+.food-float{
+  position:fixed;pointer-events:none;z-index:2;
+  font-size:1.5rem;opacity:0;
+  animation:foodFloat linear infinite;
+}
+@keyframes foodFloat{
+  0%{transform:translateY(100vh) rotate(0deg);opacity:0;}
+  5%{opacity:.12;}
+  90%{opacity:.08;}
+  100%{transform:translateY(-80px) rotate(360deg);opacity:0;}
+}
+
+@media(max-width:800px){.brand-name{font-size:2.4rem;}.cards-row{flex-direction:column;align-items:center;}.role-card{min-width:88%;}}
+</style>
+</head>
+<body>
+
+<!-- Animated canvas background -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="radial-glow rg-gold"></div>
+<div class="radial-glow rg-blue"></div>
+<div class="radial-glow rg-grn"></div>
+
+<!-- Floating food icons -->
+<div id="foodParticles"></div>
+
+<div class="wrapper">
+  <!-- HERO -->
+  <div>
+    <div class="hero">
+      <div class="logo-ring">
+        <!-- Rings + Fork Right SVG logo matching dashboard theme -->
+        <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- concentric rings (plate) -->
+          <circle cx="45" cy="50" r="25" stroke="white" stroke-width="3" opacity="0.92"/>
+          <circle cx="45" cy="50" r="15" stroke="white" stroke-width="2.5" opacity="0.55"/>
+          <circle cx="45" cy="50" r="7"  fill="white" opacity="0.92"/>
+          <!-- fork on right -->
+          <line x1="76" y1="24" x2="76" y2="76" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+          <line x1="71" y1="24" x2="71" y2="38" stroke="white" stroke-width="2.8" stroke-linecap="round" opacity="0.9"/>
+          <line x1="81" y1="24" x2="81" y2="38" stroke="white" stroke-width="2.8" stroke-linecap="round" opacity="0.9"/>
+          <path d="M71 38 Q71 46 76 46 Q81 46 81 38" fill="none" stroke="white" stroke-width="2.8"/>
+        </svg>
+      </div>
+      <div class="brand-name">Dine Lounge</div>
+      <div class="brand-tagline">Your Taste &nbsp;·&nbsp; Your Space</div>
+      <div class="tagline-divider"></div>
+    </div>
+
+    <!-- ROLE CARDS -->
+    <div class="cards-row">
+
+      <!-- Admin -->
+      <div class="role-card admin-card" onclick="handleClick(event,()=>showLogin('admin'))">
+        <div class="icon-wrap"><i class="fas fa-shield-halved"></i></div>
+        <div class="role-name">Admin</div>
+        <div class="role-desc">Manage orders, track revenue, generate reports and control system settings</div>
+        <button class="role-btn admin-btn"><i class="fas fa-lock me-2"></i>Login as Admin</button>
+      </div>
+
+      <!-- Chef -->
+      <div class="role-card chef-card" onclick="handleClick(event,()=>showLogin('chef'))">
+        <div class="icon-wrap"><i class="fas fa-fire-burner"></i></div>
+        <div class="role-name">Chef</div>
+        <div class="role-desc">View live kitchen orders and update preparation status in real-time</div>
+        <button class="role-btn chef-btn"><i class="fas fa-hat-chef me-2"></i>Login as Chef</button>
+      </div>
+
+      <!-- Customer -->
+      <div class="role-card cust-card" onclick="handleClick(event,()=>showCustomer())">
+        <div class="icon-wrap"><i class="fas fa-bowl-food"></i></div>
+        <div class="role-name">Customer</div>
+        <div class="role-desc">Browse our menu, customize your order and enjoy a seamless dining experience</div>
+        <button class="role-btn cust-btn"><span class="sdot"></span>Start Ordering</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="page-footer">
+    <i class="fas fa-circle-dot me-1" style="color:var(--cust);font-size:.5rem;"></i>
+    DINE LOUNGE &copy; 2025 &nbsp;·&nbsp; DIGITAL SELF-ORDERING SYSTEM
+  </div>
+</div>
+
+<!-- LOGIN MODAL (Admin / Chef) -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="loginModalContent">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginTitle">Portal Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-4">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-control" id="loginUsername" placeholder="Enter username" autocomplete="username">
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Password</label>
+          <div style="position:relative;">
+            <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" autocomplete="current-password" style="padding-right:42px;">
+            <button onclick="togglePwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;" id="eyeBtn"><i class="fas fa-eye"></i></button>
+          </div>
+        </div>
+        <div id="loginError" class="alert alert-danger d-none mb-3"></div>
+        <button class="btn-auth" id="loginSubmit" onclick="doLogin()">
+          <i class="fas fa-arrow-right-to-bracket me-2"></i>Authenticate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER ENTRY MODAL -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content theme-cust">
+      <div class="modal-header">
+        <h5 class="modal-title">Welcome to Dine Lounge</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--muted);font-size:.88rem;margin-bottom:22px;letter-spacing:.04em;">Enter your details to begin ordering</p>
+        <div class="mb-4">
+          <label class="form-label">Your Name <small style="text-transform:none;font-size:.7rem;color:var(--muted);">(optional)</small></label>
+          <input type="text" class="form-control" id="entryName" placeholder="e.g. Priya">
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Table Number <span style="color:var(--cust);">*</span></label>
+          <input type="text" class="form-control" id="entryTable" placeholder="e.g. 5, A12">
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Dining Mode <span style="color:var(--cust);">*</span></label>
+          <select class="form-select" id="entryDiningMode">
+            <option value="">Select mode</option>
+            <option value="Dine-In">🍽️ Dine-In</option>
+            <option value="Takeaway">🛍️ Takeaway</option>
+          </select>
+        </div>
+        <div id="entryError" class="alert alert-danger d-none mb-3"></div>
+        <button class="btn-auth auth-cust" onclick="doCustomerEntry()">
+          <i class="fas fa-arrow-right me-2"></i>Start Ordering
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = 'http://localhost:5000/api';
+let currentRole = '';
+
+/* ══ CANVAS STARFIELD ══ */
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], lines = [];
+
+  function resize(){
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars(){
+    stars = [];
+    const count = Math.floor(W * H / 8000);
+    for(let i=0;i<count;i++){
+      stars.push({
+        x:Math.random()*W, y:Math.random()*H,
+        r:Math.random()*1.2+.3,
+        a:Math.random(),
+        da:(Math.random()-.5)*.008,
+        vx:(Math.random()-.5)*.12,
+        vy:(Math.random()-.5)*.12
+      });
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      s.x += s.vx; s.y += s.vy; s.a += s.da;
+      if(s.a<=0||s.a>=1) s.da*=-1;
+      if(s.x<0)s.x=W; if(s.x>W)s.x=0;
+      if(s.y<0)s.y=H; if(s.y>H)s.y=0;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(230,57,70,${s.a*.35})`;
+      ctx.fill();
+    });
+    /* Connecting lines */
+    for(let i=0;i<stars.length;i++){
+      for(let j=i+1;j<stars.length;j++){
+        const dx=stars[i].x-stars[j].x;
+        const dy=stars[i].y-stars[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){
+          ctx.beginPath();
+          ctx.moveTo(stars[i].x,stars[i].y);
+          ctx.lineTo(stars[j].x,stars[j].y);
+          ctx.strokeStyle=`rgba(230,57,70,${.04*(1-dist/120)})`;
+          ctx.lineWidth=.6;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();initStars();});
+  resize(); initStars(); draw();
+})();
+
+/* ══ FLOATING FOOD PARTICLES ══ */
+(function(){
+  const emojis=['🍛','🍜','🥘','🍲','🥗','🍝','🥙','🫕','🍱','🍣','🥞','🧆','🥩','🍢','🥟','🧋'];
+  const container=document.getElementById('foodParticles');
+  function spawnFood(){
+    const el=document.createElement('div');
+    el.className='food-float';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=Math.random()*100+'vw';
+    el.style.fontSize=(1.2+Math.random()*1.2)+'rem';
+    const dur=18+Math.random()*22;
+    el.style.animationDuration=dur+'s';
+    el.style.animationDelay=Math.random()*-dur+'s';
+    container.appendChild(el);
+    setTimeout(()=>el.remove(),dur*1000+2000);
+  }
+  for(let i=0;i<14;i++) spawnFood();
+  setInterval(spawnFood,3000);
+})();
+
+/* ══ RIPPLE ══ */
+function handleClick(e,action){
+  const card=e.currentTarget;
+  const ripple=document.createElement('span');
+  ripple.className='ripple';
+  const rect=card.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height);
+  ripple.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px;`;
+  card.appendChild(ripple);
+  setTimeout(()=>ripple.remove(),600);
+  setTimeout(action,120);
+}
+
+/* ══ LOGIN ══ */
+function showLogin(role){
+  currentRole=role;
+  const mc=document.getElementById('loginModalContent');
+  const btn=document.getElementById('loginSubmit');
+  mc.className='modal-content'; // reset
+  if(role==='admin'){
+    mc.classList.add('theme-admin');
+    document.getElementById('loginTitle').textContent='Admin Portal';
+    btn.className='btn-auth auth-admin';
+    btn.innerHTML='<i class="fas fa-arrow-right-to-bracket me-2"></i>Authenticate';
+  } else {
+    mc.classList.add('theme-chef');
+    document.getElementById('loginTitle').textContent='Chef Portal';
+    btn.className='btn-auth auth-chef';
+    btn.innerHTML='<i class="fas fa-arrow-right-to-bracket me-2"></i>Authenticate';
+  }
+  document.getElementById('loginError').classList.add('d-none');
+  document.getElementById('loginUsername').value='';
+  document.getElementById('loginPassword').value='';
+  btn.disabled=false;
+  new bootstrap.Modal(document.getElementById('loginModal')).show();
+  setTimeout(()=>document.getElementById('loginUsername').focus(),400);
+}
+
+/* Enter key submits */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(document.getElementById('loginModal').classList.contains('show')) doLogin();
+    if(document.getElementById('customerModal').classList.contains('show')) doCustomerEntry();
+  }
+});
+
+async function doLogin(){
+  const username=document.getElementById('loginUsername').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  const btn=document.getElementById('loginSubmit');
+  if(!username||!password){err.textContent='Please enter username and password.';err.classList.remove('d-none');return;}
+  btn.innerHTML='<i class="fas fa-circle-notch fa-spin me-2"></i>Authenticating…';
+  btn.disabled=true;err.classList.add('d-none');
+  try{
+    const res=await fetch(`${API}/auth/login`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username,password,role:currentRole})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Login failed');
+    localStorage.setItem('dinelounge_token',data.token);
+    localStorage.setItem('dinelounge_role',data.user.role);
+    localStorage.setItem('dinelounge_username',data.user.username);
+    localStorage.setItem('dinelounge_loginTime',Date.now().toString());
+    window.location.href=currentRole==='admin'?'frontend/admin/admin.html':'frontend/chef/chef.html';
+  }catch(e){
+    err.textContent=e.message;err.classList.remove('d-none');
+    btn.innerHTML='<i class="fas fa-arrow-right-to-bracket me-2"></i>Authenticate';
+    btn.disabled=false;
+  }
+}
+
+function togglePwd(){
+  const inp=document.getElementById('loginPassword');
+  const ico=document.querySelector('#eyeBtn i');
+  if(inp.type==='password'){inp.type='text';ico.className='fas fa-eye-slash';}
+  else{inp.type='password';ico.className='fas fa-eye';}
+}
+
+/* ══ CUSTOMER ══ */
+function showCustomer(){
+  document.getElementById('entryError').classList.add('d-none');
+  document.getElementById('entryName').value='';
+  document.getElementById('entryTable').value='';
+  document.getElementById('entryDiningMode').value='';
+  new bootstrap.Modal(document.getElementById('customerModal')).show();
+  setTimeout(()=>document.getElementById('entryName').focus(),400);
+}
+
+function doCustomerEntry(){
+  const name=document.getElementById('entryName').value.trim();
+  const table=document.getElementById('entryTable').value.trim();
+  const mode=document.getElementById('entryDiningMode').value;
+  const err=document.getElementById('entryError');
+  if(!table){err.textContent='Table number is required.';err.classList.remove('d-none');return;}
+  if(!mode){err.textContent='Please select dining mode.';err.classList.remove('d-none');return;}
+  localStorage.setItem('customerName',name||'Guest');
+  localStorage.setItem('tableNumber',table);
+  localStorage.setItem('diningMode',mode);
+  localStorage.setItem('menuType','Veg');
+  window.location.href='frontend/customer/index.html';
+}
+</script>
+</body>
+</html>
